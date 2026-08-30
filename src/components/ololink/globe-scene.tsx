@@ -66,6 +66,12 @@ import {
   windowScore,
 } from '@/lib/orbits';
 
+/** Ground stations + the drone and HAPS flying above each of them. */
+const SURFACE_STACK = ASSETS.filter(
+  (a) => a.kind === 'ground' || a.kind === 'drone' || a.kind === 'haps'
+);
+
+
 /** Live scene positions for every asset — satellites are updated every frame. */
 type LiveMap = Map<string, THREE.Vector3>;
 
@@ -2102,6 +2108,19 @@ function SceneContent({
           onSelect={select}
           showLabel={layers.labels}
           linking={windowSats.has(sat.id)}
+        />
+      ))}
+
+      {/* Ground stations, relay drones and HAPS — stacked over each site */}
+      {SURFACE_STACK.map((a) => (
+        <AssetNode
+          key={a.id}
+          asset={a}
+          live={live}
+          selected={selection?.type === 'asset' && selection.id === a.id}
+          onRoute={routeAssets.has(a.id)}
+          onSelect={select}
+          showLabel={layers.labels}
         />
       ))}
 
