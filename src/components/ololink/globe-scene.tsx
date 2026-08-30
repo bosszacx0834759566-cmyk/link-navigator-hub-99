@@ -2089,6 +2089,22 @@ function SceneContent({
         <Earth />
       </Suspense>
 
+      {/* LEO constellation — 30 satellites propagated on their visual orbits */}
+      <OrbitDriver state={state} live={live} />
+      {layers.orbits && SATELLITES.map((s) => <OrbitTrack key={`trk-${s.id}`} elId={s.id} />)}
+      {SATELLITES.map((sat) => (
+        <AssetNode
+          key={sat.id}
+          asset={sat}
+          live={live}
+          selected={selection?.type === 'asset' && selection.id === sat.id}
+          onRoute={routeAssets.has(sat.id)}
+          onSelect={select}
+          showLabel={layers.labels}
+          linking={windowSats.has(sat.id)}
+        />
+      ))}
+
       <OrbitControls
         ref={controls}
         enablePan={false}
