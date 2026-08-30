@@ -123,6 +123,8 @@ const FLEET_REGIONS = [
 interface FleetSpec {
   kind: AssetKind;
   prefix: string;
+  /** zero-pad the numeric suffix to this width (e.g. LEO-01) */
+  pad?: number;
   count: number;
   startIndex: number;
   altMin: number;
@@ -148,7 +150,7 @@ function generateFleet(spec: FleetSpec): Asset[] {
     const health: Health = rand() < 0.88 ? 'NOMINAL' : rand() < 0.75 ? 'DEGRADED' : 'OFFLINE';
     out.push({
       id: `${spec.kind}-gen-${n}`,
-      name: `${spec.prefix}-${n}`,
+      name: `${spec.prefix}-${spec.pad ? String(n).padStart(spec.pad, '0') : n}`,
       kind: spec.kind,
       lat: +lat.toFixed(2),
       lon: +(((lon + 540) % 360) - 180).toFixed(2),
@@ -252,11 +254,12 @@ function generateSites(count: number, startIndex: number, seed: number): Asset[]
 }
 
 const GENERATED_ASSETS: Asset[] = [
-  // LEO constellation — 3 generated + 7 curated = 10 (focused coverage)
+  // LEO constellation — 23 generated (LEO-08…LEO-30) + 7 curated (LEO-01…LEO-07) = 30
   ...generateFleet({
     kind: 'satellite',
     prefix: 'LEO',
-    count: 3,
+    pad: 2,
+    count: 23,
     startIndex: 8,
     altMin: 500,
     altMax: 720,
@@ -273,13 +276,13 @@ const GENERATED_ASSETS: Asset[] = [
 
 export const ASSETS: Asset[] = [
   // LEO constellation (orchestrated, not owned) — spread across realistic orbits
-  { id: 'sat-th-1', name: 'LEO-1', kind: 'satellite', lat: 16, lon: 102, altKm: 550, role: 'Optical downlink (Thailand)', region: 'Thailand', health: 'NOMINAL' },
-  { id: 'sat-th-2', name: 'LEO-2', kind: 'satellite', lat: 4, lon: 111, altKm: 585, role: 'Capacity relay (APAC)', region: 'Thailand', health: 'NOMINAL' },
-  { id: 'sat-us-1', name: 'LEO-3', kind: 'satellite', lat: 38, lon: -106, altKm: 545, role: 'Optical downlink (United States)', region: 'United States', health: 'NOMINAL' },
-  { id: 'sat-us-2', name: 'LEO-4', kind: 'satellite', lat: 27, lon: -95, altKm: 605, role: 'Capacity relay (AMER)', region: 'United States', health: 'DEGRADED' },
-  { id: 'sat-pac', name: 'LEO-5', kind: 'satellite', lat: 22, lon: -158, altKm: 640, role: 'Trans-Pacific crosslink', region: 'Pacific', health: 'NOMINAL' },
-  { id: 'sat-atl', name: 'LEO-6', kind: 'satellite', lat: -18, lon: -32, altKm: 700, role: 'Orbital standby', region: 'Atlantic', health: 'NOMINAL' },
-  { id: 'sat-ind', name: 'LEO-7', kind: 'satellite', lat: 48, lon: 62, altKm: 675, role: 'Orbital standby', region: 'Eurasia', health: 'NOMINAL' },
+  { id: 'sat-th-1', name: 'LEO-01', kind: 'satellite', lat: 16, lon: 102, altKm: 550, role: 'Optical downlink (Thailand)', region: 'Thailand', health: 'NOMINAL' },
+  { id: 'sat-th-2', name: 'LEO-02', kind: 'satellite', lat: 4, lon: 111, altKm: 585, role: 'Capacity relay (APAC)', region: 'Thailand', health: 'NOMINAL' },
+  { id: 'sat-us-1', name: 'LEO-03', kind: 'satellite', lat: 38, lon: -106, altKm: 545, role: 'Optical downlink (United States)', region: 'United States', health: 'NOMINAL' },
+  { id: 'sat-us-2', name: 'LEO-04', kind: 'satellite', lat: 27, lon: -95, altKm: 605, role: 'Capacity relay (AMER)', region: 'United States', health: 'DEGRADED' },
+  { id: 'sat-pac', name: 'LEO-05', kind: 'satellite', lat: 22, lon: -158, altKm: 640, role: 'Trans-Pacific crosslink', region: 'Pacific', health: 'NOMINAL' },
+  { id: 'sat-atl', name: 'LEO-06', kind: 'satellite', lat: -18, lon: -32, altKm: 700, role: 'Orbital standby', region: 'Atlantic', health: 'NOMINAL' },
+  { id: 'sat-ind', name: 'LEO-07', kind: 'satellite', lat: 48, lon: 62, altKm: 675, role: 'Orbital standby', region: 'Eurasia', health: 'NOMINAL' },
 
   // HAPS — stratospheric, 18-20 km
   { id: 'haps-th', name: 'HAPS-1', kind: 'haps', lat: 13.68, lon: 100.45, altKm: 19, role: 'Stratospheric relay over Thailand', region: 'Thailand', health: 'NOMINAL' },
@@ -297,7 +300,7 @@ export const ASSETS: Asset[] = [
   { id: 'cus-th', name: 'TH Enterprise Edge', kind: 'customer', lat: 13.9, lon: 100.85, altKm: 0, role: 'Fiber handoff', region: 'Thailand', health: 'NOMINAL' },
   { id: 'cus-us', name: 'US Metro Core', kind: 'customer', lat: 39.55, lon: -104.6, altKm: 0, role: 'Fiber handoff', region: 'United States', health: 'NOMINAL' },
 
-  // Generated fleet — brings totals to 10 LEO, 5 HAPS, 5 drones, 5 ground stations
+  // Generated fleet — brings totals to 30 LEO, 5 HAPS, 5 drones, 5 ground stations
   ...GENERATED_ASSETS,
 ];
 
