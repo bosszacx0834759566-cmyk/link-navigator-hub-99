@@ -221,33 +221,24 @@ function generateSites(count: number, startIndex: number, seed: number): Asset[]
   const out: Asset[] = [];
   for (let i = 0; i < count; i++) {
     const n = startIndex + i;
+    const nn = String(n).padStart(2, '0');
     const region = FLEET_REGIONS[i % FLEET_REGIONS.length]!;
     const healthOf = (): Health => (rand() < 0.88 ? 'NOMINAL' : rand() < 0.75 ? 'DEGRADED' : 'OFFLINE');
 
     // Ground station anchor — curated land coordinate + small local jitter (≤ ~35 km).
-    const [aLat, aLon] = LAND_ANCHORS[i % LAND_ANCHORS.length]!;
-    const gsLat = aLat + (rand() - 0.5) * 0.6;
-    const gsLon = aLon + (rand() - 0.5) * 0.6;
+    const [aLat, aLon] = LAND_ANCHORS[(i * 3) % LAND_ANCHORS.length]!;
+    const gsLat = +(aLat + (rand() - 0.5) * 0.4).toFixed(2);
+    const gsLon = +(aLon + (rand() - 0.5) * 0.4).toFixed(2);
 
-    // Drone: 10–15 km from the ground station, below the cloud deck (3–6 km alt).
-    const dBearing = rand() * Math.PI * 2;
-    const dDistKm = 10.5 + rand() * 4;
-    const drnLat = gsLat + (Math.cos(dBearing) * dDistKm) / KM_PER_DEG;
-    const drnLon = gsLon + (Math.sin(dBearing) * dDistKm) / (KM_PER_DEG * Math.cos((gsLat * Math.PI) / 180));
+    // Drone flies directly above the ground station (3–6 km).
     const drnAlt = +(3 + rand() * 3).toFixed(1);
-
-    // HAPS: 2–5 km horizontally from its drone, in the stratosphere above clouds.
-    const hBearing = rand() * Math.PI * 2;
-    const hDistKm = 2.5 + rand() * 2;
-    const hapsLat = drnLat + (Math.cos(hBearing) * hDistKm) / KM_PER_DEG;
-    const hapsLon = drnLon + (Math.sin(hBearing) * hDistKm) / (KM_PER_DEG * Math.cos((drnLat * Math.PI) / 180));
+    // HAPS flies directly above the drone, in the stratosphere (18–20 km).
     const hapsAlt = +(18 + rand() * 2).toFixed(1);
 
-    const norm = (lon: number) => +(((lon + 540) % 360) - 180).toFixed(2);
     out.push(
-      { id: `haps-gen-${n}`, name: `HAPS-${n}`, kind: 'haps', lat: +hapsLat.toFixed(2), lon: norm(hapsLon), altKm: hapsAlt, role: `Stratospheric relay (${region})`, region, health: healthOf() },
-      { id: `drone-gen-${n}`, name: `Drone-${n}`, kind: 'drone', lat: +drnLat.toFixed(2), lon: norm(drnLon), altKm: drnAlt, role: `Low-altitude relay (${region})`, region, health: healthOf() },
-      { id: `ground-gen-${n}`, name: `GS-${n}`, kind: 'ground', lat: +gsLat.toFixed(2), lon: norm(gsLon), altKm: 0, role: `Gateway station (${region})`, region, health: healthOf() },
+      { id: `haps-gen-${n}`, name: `HAPS-${nn}`, kind: 'haps', lat: gsLat, lon: gsLon, altKm: hapsAlt, role: `Stratospheric relay (${region})`, region, health: healthOf() },
+      { id: `drone-gen-${n}`, name: `Drone-${nn}`, kind: 'drone', lat: gsLat, lon: gsLon, altKm: drnAlt, role: `Low-altitude relay (${region})`, region, health: healthOf() },
+      { id: `ground-gen-${n}`, name: `Ground Station-${nn}`, kind: 'ground', lat: gsLat, lon: gsLon, altKm: 0, role: `Gateway station (${region})`, region, health: healthOf() },
     );
   }
   return out;
@@ -271,7 +262,7 @@ const GENERATED_ASSETS: Asset[] = [
   // HAPS / Drone / GS operate as co-located clusters (site N = HAPS-N + Drone-N + GS-N):
   // HAPS flies 2–5 km above its drone (above the cloud deck), the drone stays
   // below the clouds, and the ground station sits 10–15 km away from the drone.
-  ...generateSites(3, 3, 4242),
+  ...generateSites(8, 3, 4242),
 ];
 
 export const ASSETS: Asset[] = [
@@ -285,22 +276,22 @@ export const ASSETS: Asset[] = [
   { id: 'sat-ind', name: 'LEO-07', kind: 'satellite', lat: 48, lon: 62, altKm: 675, role: 'Orbital standby', region: 'Eurasia', health: 'NOMINAL' },
 
   // HAPS — stratospheric, 18-20 km
-  { id: 'haps-th', name: 'HAPS-1', kind: 'haps', lat: 13.68, lon: 100.45, altKm: 19, role: 'Stratospheric relay over Thailand', region: 'Thailand', health: 'NOMINAL' },
-  { id: 'haps-us', name: 'HAPS-2', kind: 'haps', lat: 39.85, lon: -105.07, altKm: 19.5, role: 'Stratospheric relay over United States', region: 'United States', health: 'NOMINAL' },
+  { id: 'haps-th', name: 'HAPS-01', kind: 'haps', lat: 13.75, lon: 100.52, altKm: 19, role: 'Stratospheric relay over Thailand', region: 'Thailand', health: 'NOMINAL' },
+  { id: 'haps-us', name: 'HAPS-02', kind: 'haps', lat: 39.74, lon: -104.99, altKm: 19.5, role: 'Stratospheric relay over United States', region: 'United States', health: 'NOMINAL' },
 
   // Relay drones
-  { id: 'drn-th', name: 'Drone-1', kind: 'drone', lat: 13.66, lon: 100.44, altKm: 4, role: 'Low-altitude relay over Thailand', region: 'Thailand', health: 'NOMINAL' },
-  { id: 'drn-us', name: 'Drone-2', kind: 'drone', lat: 39.83, lon: -105.08, altKm: 4, role: 'Low-altitude relay over United States', region: 'United States', health: 'NOMINAL' },
+  { id: 'drn-th', name: 'Drone-01', kind: 'drone', lat: 13.75, lon: 100.52, altKm: 4, role: 'Low-altitude relay over Thailand', region: 'Thailand', health: 'NOMINAL' },
+  { id: 'drn-us', name: 'Drone-02', kind: 'drone', lat: 39.74, lon: -104.99, altKm: 4, role: 'Low-altitude relay over United States', region: 'United States', health: 'NOMINAL' },
 
   // Ground stations
-  { id: 'gs-th', name: 'GS-1', kind: 'ground', lat: 13.75, lon: 100.52, altKm: 0, role: 'Primary gateway', region: 'Thailand', health: 'NOMINAL' },
-  { id: 'gs-us', name: 'GS-2', kind: 'ground', lat: 39.74, lon: -104.99, altKm: 0, role: 'Primary gateway', region: 'United States', health: 'NOMINAL' },
+  { id: 'gs-th', name: 'Ground Station-01', kind: 'ground', lat: 13.75, lon: 100.52, altKm: 0, role: 'Primary gateway', region: 'Thailand', health: 'NOMINAL' },
+  { id: 'gs-us', name: 'Ground Station-02', kind: 'ground', lat: 39.74, lon: -104.99, altKm: 0, role: 'Primary gateway', region: 'United States', health: 'NOMINAL' },
 
   // Customer networks
   { id: 'cus-th', name: 'TH Enterprise Edge', kind: 'customer', lat: 13.9, lon: 100.85, altKm: 0, role: 'Fiber handoff', region: 'Thailand', health: 'NOMINAL' },
   { id: 'cus-us', name: 'US Metro Core', kind: 'customer', lat: 39.55, lon: -104.6, altKm: 0, role: 'Fiber handoff', region: 'United States', health: 'NOMINAL' },
 
-  // Generated fleet — brings totals to 30 LEO, 5 HAPS, 5 drones, 5 ground stations
+  // Generated fleet — brings totals to 30 LEO, 10 HAPS, 10 drones, 10 ground stations
   ...GENERATED_ASSETS,
 ];
 
