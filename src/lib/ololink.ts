@@ -300,7 +300,7 @@ export const ASSETS: Asset[] = [
   { id: 'cus-th', name: 'TH Enterprise Edge', kind: 'customer', lat: 13.9, lon: 100.85, altKm: 0, role: 'Fiber handoff', region: 'Thailand', health: 'NOMINAL' },
   { id: 'cus-us', name: 'US Metro Core', kind: 'customer', lat: 39.55, lon: -104.6, altKm: 0, role: 'Fiber handoff', region: 'United States', health: 'NOMINAL' },
 
-  // Generated fleet — brings totals to 10 LEO, 5 HAPS, 5 drones, 5 ground stations
+  // Generated fleet — brings totals to 30 LEO, 5 HAPS, 5 drones, 5 ground stations
   ...GENERATED_ASSETS,
 ];
 
